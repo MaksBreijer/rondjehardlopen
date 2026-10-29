@@ -160,8 +160,8 @@ export function rankStops(
   const rand = rng(seed + 17);
   const finish = mode === "finish";
   const maxD = finish ? Math.min(1200, targetM * 0.15) : targetM / (2 * 1.25);
-  // Supermarkets: always the one nearest to home, not one at an "ideal" distance.
-  const nearest = pois.length > 0 && pois.every((p) => p.category === "supermarket");
+  // Supermarket as finish: always the one nearest to home, not one at an "ideal" distance.
+  const nearest = finish && pois.length > 0 && pois.every((p) => p.category === "supermarket");
   const minD = nearest ? 100 : finish ? 120 : Math.max(350, targetM * 0.1);
   const ideal = finish ? 450 : mode === "midway" ? targetM * 0.27 : targetM * 0.34;
   const fit = pois
@@ -268,7 +268,10 @@ async function pool<T, R>(items: T[], size: number, fn: (t: T) => Promise<R>): P
 
 /* ------------------------------ generation ------------------------------ */
 
-export async function generateRoutes(req: RouteRequest, deps: Deps): Promise<{ routes: RouteResult[]; targetM: number; warnings: string[]; evaluated: number }> {
+export async function generateRoutes(input: RouteRequest, deps: Deps): Promise<{ routes: RouteResult[]; targetM: number; warnings: string[]; evaluated: number }> {
+  // Supermarket: either the one nearest to home as the finish, or else halfway along the route.
+  const req: RouteRequest =
+    input.category === "supermarket" && input.stopMode !== "finish" ? { ...input, stopMode: "midway" } : input;
   const targetM = req.distanceKm * 1000;
   const rand = rng(req.seed);
   const warnings: string[] = [];
