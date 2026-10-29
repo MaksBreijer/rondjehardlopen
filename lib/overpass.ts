@@ -79,6 +79,28 @@ export const isKnownChain = (t: Record<string, string>) => {
   return vals.some((v) => SUPERMARKET_CHAINS.test(v)) && !vals.some((v) => SMALL_FORMATS.test(v));
 };
 
+/** Mass-market chains and fast-food style places: not the "nice local spot" people want for a coffee or pastry stop. */
+const NOT_SPECIAL: Record<"coffee" | "bakery", RegExp> = {
+  coffee: /\b(starbucks|coffee company|douwe egberts|mcdonald|mccafe|burger king|kfc|subway|febo|kwalitaria|new york pizza|snackbar|cafetaria|automaten?)\b/i,
+  bakery: /\b(bakker bart|hema|kruidvat|albert heijn|jumbo|lidl|aldi|plus|dirk|spar|ah|snackbar|cafetaria|shoarma)\b/i,
+};
+
+const alive = (t: Record<string, string>) => {
+  if (t.disused || t.abandoned || t["disused:shop"] || t["disused:amenity"] || t.opening_hours === "off") return false;
+  // a place we can verify still exists: opening hours, website, phone or social page in OSM
+  return !!(t.opening_hours || t.website || t["contact:website"] || t.phone || t["contact:phone"] || t["contact:instagram"] || t.instagram);
+};
+
+/** Quality filter for coffee and bakery stops. OSM has no ratings, so we use signals of an independent, living business. */
+export function isGoodSpot(t: Record<string, string>, category: Category): boolean {
+  if (category !== "coffee" && category !== "bakery") return true;
+  if (!alive(t)) return false;
+  const vals = [t.name, t.brand, t.operator].filter((v): v is string => !!v);
+  if (vals.some((v) => NOT_SPECIAL[category].test(v))) return false;
+  if (category === "coffee") return t.amenity === "cafe" || t.shop === "coffee";
+  return t.shop === "bakery" || t.shop === "pastry";
+}
+
 export function parseElements(elements: Element[], category: Category): Poi[] {
   const out: Poi[] = [];
   for (const el of elements) {
@@ -88,6 +110,7 @@ export function parseElements(elements: Element[], category: Category): Poi[] {
     // never invent places: unnamed or locationless elements are skipped
     if (!tags.name || lat === undefined || lng === undefined) continue;
     if (category === "supermarket" && !isKnownChain(tags)) continue;
+    if (!isGoodSpot(tags, category)) continue;
     out.push({
       id: `osm:${el.type}/${el.id}`,
       name: tags.name,

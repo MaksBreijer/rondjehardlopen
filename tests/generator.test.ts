@@ -197,9 +197,8 @@ describe("input handling", () => {
       ],
       "coffee",
     );
-    expect(out.map((p) => p.name)).toEqual(["Echt", "Park"]);
+    expect(out.map((p) => p.name)).toEqual(["Echt"]);
     expect(out[0].openingHours).toBe("Mo-Su 09:00-17:00");
-    expect(out[1].openingHours).toBeUndefined();
   });
   it("supermarkets: only the well-known chains", () => {
     const el = (id: number, tags: Record<string, string>) => ({ type: "node" as const, id, lat: 52, lon: 5, tags: { shop: "supermarket", ...tags } });
@@ -220,8 +219,29 @@ describe("input handling", () => {
     );
     expect(out.map((p) => p.id)).toEqual(["osm:node/1", "osm:node/2", "osm:node/3", "osm:node/4", "osm:node/6", "osm:node/10"]);
   });
+  it("coffee and bakery: independent, living places only", () => {
+    const n = (id: number, tags: Record<string, string>) => ({ type: "node" as const, id, lat: 1, lon: 2, tags });
+    const coffee = parseElements(
+      [
+        n(1, { name: "Hip Beans", amenity: "cafe", website: "https://hip.nl" }),
+        n(2, { name: "Starbucks", amenity: "cafe", website: "https://s.com" }),
+        n(3, { name: "Dode Zaak", amenity: "cafe" }),
+        n(4, { name: "Gesloten", amenity: "cafe", website: "https://g.nl", "disused:amenity": "cafe" }),
+      ],
+      "coffee",
+    );
+    expect(coffee.map((p) => p.name)).toEqual(["Hip Beans"]);
+    const bakery = parseElements(
+      [
+        n(1, { name: "Bakkerij Van Dam", shop: "bakery", opening_hours: "Tu-Sa 08:00-17:00" }),
+        n(2, { name: "Bakker Bart", shop: "bakery", opening_hours: "Mo-Su 08:00-18:00" }),
+      ],
+      "bakery",
+    );
+    expect(bakery.map((p) => p.name)).toEqual(["Bakkerij Van Dam"]);
+  });
   it("other categories are not chain-filtered", () => {
-    const out = parseElements([{ type: "node", id: 1, lat: 1, lon: 2, tags: { name: "Eigen Koffietent", amenity: "cafe" } }], "coffee");
+    const out = parseElements([{ type: "node", id: 1, lat: 1, lon: 2, tags: { name: "Eigen Koffietent", amenity: "cafe", website: "https://x.nl" } }], "coffee");
     expect(out).toHaveLength(1);
   });
   it("parseRequest validates", () => {
