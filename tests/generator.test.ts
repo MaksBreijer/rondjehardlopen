@@ -254,13 +254,13 @@ describe("input handling", () => {
 });
 
 describe("rankStops supermarkets", () => {
-  it("picks the supermarket nearest to home when it is the finish", () => {
+  it("picks the supermarket nearest to home first, also onderweg", () => {
     const mk = (id: string, dLat: number) => ({
       id, name: id, category: "supermarket" as const, kind: "Supermarkt",
       location: { lat: START.lat + dLat, lng: START.lng }, source: "osm" as const, sponsored: false, offers: [],
     });
     const list = [mk("far", 0.03), mk("near", 0.004), mk("mid", 0.015)];
-    expect(rankStops(list, START, 10000, "finish", 3, 3).map((p) => p.id)).toEqual(["near"]);
+    expect(rankStops(list, START, 10000, "midway", 3, 3).map((p) => p.id)).toEqual(["near", "mid", "far"]);
   });
 });
 
