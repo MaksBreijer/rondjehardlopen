@@ -218,7 +218,7 @@ describe("input handling", () => {
       ],
       "supermarket",
     );
-    expect(out.map((p) => p.id)).toEqual(["osm:node/1", "osm:node/2", "osm:node/3", "osm:node/4", "osm:node/5", "osm:node/6", "osm:node/10"]);
+    expect(out.map((p) => p.id)).toEqual(["osm:node/1", "osm:node/2", "osm:node/3", "osm:node/4", "osm:node/6", "osm:node/10"]);
   });
   it("other categories are not chain-filtered", () => {
     const out = parseElements([{ type: "node", id: 1, lat: 1, lon: 2, tags: { name: "Eigen Koffietent", amenity: "cafe" } }], "coffee");
@@ -241,5 +241,18 @@ describe("rankStops supermarkets", () => {
     });
     const list = [mk("far", 0.03), mk("near", 0.004), mk("mid", 0.015)];
     expect(rankStops(list, START, 10000, "finish", 3, 3).map((p) => p.id)).toEqual(["near"]);
+  });
+});
+
+import { isKnownChain } from "@/lib/overpass";
+
+describe("supermarket chains", () => {
+  it("accepts big stores and rejects small formats", () => {
+    expect(isKnownChain({ name: "Albert Heijn" })).toBe(true);
+    expect(isKnownChain({ name: "Jumbo", brand: "Jumbo" })).toBe(true);
+    expect(isKnownChain({ name: "Jumbo City" })).toBe(false);
+    expect(isKnownChain({ name: "Spar University" })).toBe(false);
+    expect(isKnownChain({ name: "AH to go", brand: "Albert Heijn" })).toBe(false);
+    expect(isKnownChain({ name: "Albert Heijn to go" })).toBe(false);
   });
 });

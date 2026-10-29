@@ -14,12 +14,7 @@ const ENDPOINTS = (
 const FILTERS: Record<Category, string[]> = {
   coffee: ['["amenity"="cafe"]', '["shop"="coffee"]'],
   bakery: ['["shop"="bakery"]', '["shop"="pastry"]'],
-  supermarket: [
-    '["shop"="supermarket"]',
-    // smaller formats (Spar University/Express, Jumbo City, AH to go) are often tagged as convenience shops
-    '["shop"~"^(convenience|general)$"]["name"~"(spar|albert heijn|appie|^AH |jumbo|dirk|lidl|aldi)",i]',
-    '["shop"~"^(convenience|general)$"]["brand"~"(spar|albert heijn|appie|^AH |jumbo|dirk|lidl|aldi)",i]',
-  ],
+  supermarket: ['["shop"="supermarket"]'],
   green: ['["leisure"="park"]', '["leisure"="nature_reserve"]', '["landuse"="forest"]', '["natural"="wood"]'],
   surprise: [
     '["tourism"="viewpoint"]',
@@ -74,10 +69,15 @@ function addressOf(t: Tags): string | undefined {
 }
 
 /** Only the big chains people know and trust for a stop during a run. */
-export const SUPERMARKET_CHAINS = /\b(jumbo|albert heijn|appie|ah|dirk|lidl|spar|aldi)\b/i;
+export const SUPERMARKET_CHAINS = /\b(jumbo|albert heijn|dirk|lidl|spar|aldi)\b/i;
 
-export const isKnownChain = (t: Record<string, string>) =>
-  [t.name, t.brand, t.operator].some((v) => !!v && SUPERMARKET_CHAINS.test(v));
+/** Small formats are too small for a proper stop: Jumbo City, Spar University/Express, AH to go. */
+export const SMALL_FORMATS = /\b(city|university|express|to ?go)\b/i;
+
+export const isKnownChain = (t: Record<string, string>) => {
+  const vals = [t.name, t.brand, t.operator].filter((v): v is string => !!v);
+  return vals.some((v) => SUPERMARKET_CHAINS.test(v)) && !vals.some((v) => SMALL_FORMATS.test(v));
+};
 
 export function parseElements(elements: Element[], category: Category): Poi[] {
   const out: Poi[] = [];
