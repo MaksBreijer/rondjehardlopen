@@ -3,7 +3,7 @@
 import { categoryInfo } from "@/lib/categories";
 import { buzz } from "@/lib/client/haptics";
 import { duration, kmLabel } from "@/lib/format";
-import type { Category } from "@/lib/types";
+import { MARATHON_KM, type Category } from "@/lib/types";
 import Icon from "./Icon";
 
 interface Props {
@@ -20,7 +20,8 @@ interface Props {
 export default function HeroWidget({ km, onKm, category, paceSecPerKm, startLabel, saved, onJump }: Props) {
   const step = (d: number) => {
     buzz();
-    onKm(Math.min(30, Math.max(2, Math.round((km + d) * 2) / 2)));
+    const next = Math.round((km + d) * 2) / 2;
+    onKm(next > 42 ? MARATHON_KM : Math.max(2, next));
   };
   return (
     <div className="hw" role="group" aria-label="Jouw rondje van vandaag">
@@ -34,7 +35,7 @@ export default function HeroWidget({ km, onKm, category, paceSecPerKm, startLabe
           <b>{kmLabel(km)}</b>
           <small>km</small>
         </div>
-        <button className="hw-step" onClick={() => step(0.5)} aria-label="Halve kilometer meer" disabled={km >= 30}>+</button>
+        <button className="hw-step" onClick={() => step(0.5)} aria-label="Halve kilometer meer" disabled={km >= MARATHON_KM}>+</button>
       </div>
       <div className="hw-grid">
         <div>

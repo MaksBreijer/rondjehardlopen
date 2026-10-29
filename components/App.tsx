@@ -68,7 +68,9 @@ export default function App() {
     [km, category, stopMode, visit, prefs, seed, pace],
   );
 
+  const runId = useRef(0);
   const run = useCallback(async (req: RouteRequest) => {
+    const id = ++runId.current;
     setPhase("loading");
     setError(null);
     setLoadingMsg(0);
@@ -77,6 +79,7 @@ export default function App() {
     try {
       const res = await fetch("/api/routes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(req) });
       const json = await res.json();
+      if (id !== runId.current) return; // user went home meanwhile
       if (!res.ok) {
         setError((json as ApiError).error);
         setPhase("plan");
@@ -85,9 +88,16 @@ export default function App() {
       setData(json as GenerateResponse);
       setPhase("results");
     } catch {
+      if (id !== runId.current) return;
       setError({ code: "ROUTING_FAILED", message: "Geen verbinding met de server. Controleer je internet en probeer opnieuw." });
       setPhase("plan");
     }
+  }, []);
+
+  const goHome = useCallback(() => {
+    runId.current++; // cancels a calculation that is still running
+    setPhase("plan");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   // Shared link: ?lat&lng&km&cat&mode&visit&g&q&seed
@@ -172,10 +182,14 @@ export default function App() {
       <PendingStrava />
       {phase !== "plan" && (
         <div className="topbar">
-          <button className="logo" onClick={() => setPhase("plan")} aria-label="RondjeHardlopen.nl, naar begin">
+          <button className="logo" onClick={goHome} aria-label="RondjeHardlopen.nl, naar begin">
             <Logo />
           </button>
         </div>
+      )}
+
+      {phase === "plan" && pastHero && (
+        <button className="home-fab" onClick={goHome} aria-label="Naar de homepagina"><Logo /></button>
       )}
 
       {phase === "loading" && (
@@ -197,7 +211,7 @@ export default function App() {
           distanceKm={fromSaved ? null : km}
           savedIds={savedIds}
           canRegenerate={!fromSaved}
-          onBack={() => setPhase("plan")}
+          onBack={goHome}
           onRegenerate={() => go(seed + 1)}
           onSave={toggleSave}
           onShare={share}

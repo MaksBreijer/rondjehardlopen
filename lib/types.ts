@@ -15,6 +15,8 @@ export interface Prefs {
   quiet: boolean;
 }
 
+/** A full marathon: the longest round we plan. */
+export const MARATHON_KM = 42.195;
 export const DISTANCES_KM = [3, 5, 7.5, 10, 15, 20] as const;
 
 /* ---- Local businesses (prepared for partnerships, see ARCHITECTURE.md) ---- */
