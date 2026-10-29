@@ -14,7 +14,12 @@ const ENDPOINTS = (
 const FILTERS: Record<Category, string[]> = {
   coffee: ['["amenity"="cafe"]', '["shop"="coffee"]'],
   bakery: ['["shop"="bakery"]', '["shop"="pastry"]'],
-  supermarket: ['["shop"="supermarket"]', '["shop"="convenience"]["brand"~"^(Spar|Albert Heijn|AH to go|Jumbo)",i]'],
+  supermarket: [
+    '["shop"="supermarket"]',
+    // smaller formats (Spar University/Express, Jumbo City, AH to go) are often tagged as convenience shops
+    '["shop"~"^(convenience|general)$"]["name"~"(spar|albert heijn|appie|^AH |jumbo|dirk|lidl|aldi)",i]',
+    '["shop"~"^(convenience|general)$"]["brand"~"(spar|albert heijn|appie|^AH |jumbo|dirk|lidl|aldi)",i]',
+  ],
   green: ['["leisure"="park"]', '["leisure"="nature_reserve"]', '["landuse"="forest"]', '["natural"="wood"]'],
   surprise: [
     '["tourism"="viewpoint"]',
@@ -69,7 +74,7 @@ function addressOf(t: Tags): string | undefined {
 }
 
 /** Only the big chains people know and trust for a stop during a run. */
-export const SUPERMARKET_CHAINS = /\b(jumbo|albert heijn|ah to go|dirk|lidl|spar|aldi)\b/i;
+export const SUPERMARKET_CHAINS = /\b(jumbo|albert heijn|appie|ah|dirk|lidl|spar|aldi)\b/i;
 
 export const isKnownChain = (t: Record<string, string>) =>
   [t.name, t.brand, t.operator].some((v) => !!v && SUPERMARKET_CHAINS.test(v));
