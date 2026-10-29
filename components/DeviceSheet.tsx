@@ -41,8 +41,30 @@ export default function DeviceSheet({ route, onClose }: { route: RouteResult; on
           <h3>Naar je horloge of fietscomputer</h3>
           <button className="btn small ghost" onClick={onClose} aria-label="Sluiten"><Icon name="close" /></button>
         </div>
-        <p className="hint">Een website kan een horloge niet rechtstreeks starten. Het GPX-bestand is wel het formaat dat Garmin, Wahoo, Coros, Suunto en Polar zelf importeren.</p>
-        <button className="btn big" onClick={shareFile}><Icon name="download" /> Deel of download GPX</button>
+        <div className="garmin">
+          <h4>⌚ Garmin in 3 stappen</h4>
+          <ol>
+            <li>
+              <button className="btn" onClick={shareFile}>
+                <Icon name="download" /> 1. Bewaar je route
+              </button>
+              <span>Er komt een bestand ("GPX") op je telefoon of computer.</span>
+            </li>
+            <li>
+              <a className="btn" href="https://connect.garmin.com/modern/courses" target="_blank" rel="noopener noreferrer">
+                2. Open Garmin Connect
+              </a>
+              <span>Log in en kies "Importeren". Kies het bestand van stap 1.</span>
+            </li>
+            <li>
+              <div className="btn ghost static">3. Naar je horloge</div>
+              <span>Klik bij de route op "Naar apparaat sturen". Open daarna de Garmin Connect-app op je telefoon, dan komt hij vanzelf op je horloge.</span>
+            </li>
+          </ol>
+          <p className="hint">Op je Vivoactive 5: start een hardloopactiviteit en kies Navigatie, dan Courses, dan je rondje. Je ziet de route als lijn (de Vivoactive 5 heeft geen kaart).</p>
+        </div>
+        <p className="hint">Een website kan een horloge niet rechtstreeks starten. Het GPX-bestand is wel het formaat dat Wahoo, Coros, Suunto en Polar zelf importeren.</p>
+        <button className="btn ghost big" onClick={shareFile}><Icon name="share" /> Ander merk? Deel of download GPX</button>
         {msg && <div className="notice info">{msg}</div>}
         <div className="brands">
           {BRANDS.map((b) => (
