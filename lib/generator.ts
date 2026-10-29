@@ -160,12 +160,14 @@ export function rankStops(
   const rand = rng(seed + 17);
   const finish = mode === "finish";
   const maxD = finish ? Math.min(1200, targetM * 0.15) : targetM / (2 * 1.25);
-  const minD = finish ? 120 : Math.max(350, targetM * 0.1);
+  // Supermarkets: always the one nearest to home, not one at an "ideal" distance.
+  const nearest = pois.length > 0 && pois.every((p) => p.category === "supermarket");
+  const minD = nearest ? 100 : finish ? 120 : Math.max(350, targetM * 0.1);
   const ideal = finish ? 450 : mode === "midway" ? targetM * 0.27 : targetM * 0.34;
   const fit = pois
     .map((p) => ({ p, d: haversine(start, p.location) }))
     .filter((x) => x.d >= minD && x.d <= maxD)
-    .map((x) => ({ ...x, score: Math.abs(x.d - ideal) / targetM + rand() * 0.08 }))
+    .map((x) => ({ ...x, score: nearest ? x.d : Math.abs(x.d - ideal) / targetM + rand() * 0.08 }))
     .sort((a, b) => a.score - b.score);
   const chosen: typeof fit = [];
   for (const c of fit) {

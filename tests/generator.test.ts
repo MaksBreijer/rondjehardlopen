@@ -232,3 +232,14 @@ describe("input handling", () => {
     expect(typeof ok).toBe("object");
   });
 });
+
+describe("rankStops supermarkets", () => {
+  it("picks the supermarket nearest to home first", () => {
+    const mk = (id: string, dLat: number) => ({
+      id, name: id, category: "supermarket" as const, kind: "Supermarkt",
+      location: { lat: START.lat + dLat, lng: START.lng }, source: "osm" as const,
+    });
+    const list = [mk("far", 0.03), mk("near", 0.004), mk("mid", 0.015)];
+    expect(rankStops(list, START, 10000, "midway", 3, 3).map((p) => p.id)).toEqual(["near", "mid", "far"]);
+  });
+});
